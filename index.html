@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Private Leaks</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: #0f0;
+      font-family: 'Share Tech Mono', monospace;
+      overflow: hidden;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+    #matrixCanvas {
+      z-index: -2;
+    }
+    #snowCanvas {
+      z-index: -1;
+    }
+    #clock {
+      position: fixed;
+      top: 10px;
+      right: 20px;
+      font-size: 1rem;
+      color: #0f0;
+      text-shadow: 0 0 5px #0f0;
+      z-index: 10;
+      background-color: rgba(0, 0, 0, 0.4);
+      padding: 5px 10px;
+      border-radius: 5px;
+      border: 1px solid #0f0;
+    }
+    .content {
+      position: relative;
+      z-index: 1;
+      padding: 60px;
+      text-align: center;
+      max-width: 900px;
+      margin: auto;
+    }
+    h1 {
+      font-size: 3rem;
+      text-shadow: 0 0 10px #0f0;
+    }
+    .button {
+      display: inline-block;
+      margin: 20px 10px 0 10px;
+      font-size: 1.3rem;
+      padding: 12px 28px;
+      color: #0f0;
+      background: none;
+      border: 2px solid #0f0;
+      border-radius: 8px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease-in-out;
+    }
+    .button:hover {
+      background-color: #0f0;
+      color: black;
+    }
+    #leakView {
+      margin-top: 30px;
+      background: rgba(0, 0, 0, 0.85);
+      border: 1px solid #0f0;
+      color: #0f0;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      height: 350px;
+      width: 100%;
+      max-width: 900px;
+      padding: 20px;
+      box-sizing: border-box;
+      resize: vertical;
+      outline: none;
+      display: none;
+      text-align: left;
+      box-shadow: 0 0 15px #0f0;
+      user-select: text;
+      white-space: pre-wrap;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="matrixCanvas"></canvas>
+  <canvas id="snowCanvas"></canvas>
+  <div id="clock"></div>
+
+  <div class="content">
+    <h1>Welcome to Private Leaks</h1>
+    <button class="button" id="enterLeaks">Enter Leaks</button>
+    <button class="button" id="downloadLeak" style="display:none;">Download Leak Info</button>
+    <textarea id="leakView" spellcheck="false" aria-label="Leak information"></textarea>
+  </div>
+
+  <script>
+    // MATRIX EFFECT
+    const matrixCanvas = document.getElementById('matrixCanvas');
+    const matrixCtx = matrixCanvas.getContext('2d');
+
+    function resizeCanvas() {
+      matrixCanvas.width = window.innerWidth;
+      matrixCanvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const letters = 'アァイィウヴエェオカガキギクグケゲコゴABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('');
+    const fontSize = 14;
+    const columns = Math.floor(window.innerWidth / fontSize);
+    const drops = Array(columns).fill(1);
+
+    function drawMatrix() {
+      matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+      matrixCtx.fillStyle = '#0F0';
+      matrixCtx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = letters[Math.floor(Math.random() * letters.length)];
+        matrixCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      }
+    }
+    setInterval(drawMatrix, 33);
+
+    // SNOW EFFECT
+    const snowCanvas = document.getElementById('snowCanvas');
+    const snowCtx = snowCanvas.getContext('2d');
+
+    function resizeSnowCanvas() {
+      snowCanvas.width = window.innerWidth;
+      snowCanvas.height = window.innerHeight;
+    }
+    resizeSnowCanvas();
+    window.addEventListener('resize', resizeSnowCanvas);
+
+    const snowflakes = Array.from({ length: 100 }).map(() => ({
+      x: Math.random() * snowCanvas.width,
+      y: Math.random() * snowCanvas.height,
+      r: Math.random() * 3 + 1,
+      d: Math.random() * 1 + 0.5
+    }));
+
+    function drawSnow() {
+      snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+      snowCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      snowCtx.beginPath();
+      snowflakes.forEach(flake => {
+        snowCtx.moveTo(flake.x, flake.y);
+        snowCtx.arc(flake.x, flake.y, flake.r, 0, Math.PI * 2);
+      });
+      snowCtx.fill();
+
+      snowflakes.forEach(flake => {
+        flake.y += flake.d;
+        if (flake.y > snowCanvas.height) {
+          flake.y = 0;
+          flake.x = Math.random() * snowCanvas.width;
+        }
+      });
+    }
+    setInterval(drawSnow, 30);
+
+    // CLOCK
+    const clockElem = document.getElementById('clock');
+    function updateClock() {
+      const now = new Date();
+      const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      clockElem.textContent = time;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // FAKE LEAK DATA (ASCII style)
+    const leakLines = [
+      "⣿⠲⠤⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀          - Hacker Alias: NightByte - AGE 25",
+      "⣸⡏⠀⠀⠀⠉⠳⢄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+      "⣿⠀⠀⠀⠀⠀⠀⠀⠉⠲⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀          (BASE INFORMATION)",
+      "⢰⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠲⣄⠀⠀⠀⡰⠋⢙⣿⣦⡀⠀⠀⠀⠀⠀       - Name: Unknown",
+      "⠸⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣙⣦⣮⣤⡀⣸⣿⣿⣿⣆⠀⠀⠀⠀       - Phone: +1 (555) 123-4567",
+      "⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⣿⣿⣿⠀⣿⢟⣫⠟⠋⠀⠀⠀⠀       - Location: Unknown",
+      "⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⣿⣿⣿⣿⣷⣷⣿⡁⠀⠀⠀⠀⠀⠀       ",
+      "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⢸⣿⣿⣧⣿⣿⣆⠙⢆⡀⠀⠀⠀⠀  LEAKED BY LOLA    (Socials)",
+      "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢾⣿⣤⣿⣿⣿⡟⠹⣿⣿⣿⣿⣷⡀⠀⠀     Discord: NightByte#1234",
+      "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣧⣴⣿⣿⣿⣿⠏⢧⠀⠀     Twitch: twitch.tv/nightbyte",
+      "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠀⠈⢳⡀     Twitter: @nightbyte",
+      "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠠⡏⣸⣿⣿⣿⣿⣿⣿⣿⣿⠃⠀⠀⠀⢳     GitHub: github.com/nightbyte",
+      "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⢀⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀",
+      "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠸⣿⣿⣿⣿⣿⣿⣿⣿⠏⠀⠀⠀⠀⠀⠀",
+      "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀",
+      "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⡇⢠⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀",
+      "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⠃⢸⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀    (REASON FOR LEAK)",
+      "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣼⢸⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀    NightByte hacked corporate servers for fun.",
+      "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⢸⣿⣿⣿⣿⣿⣿⣿⣿⡄⠀⠀⠀⠀⠀⠀    Their exploits revealed multiple security holes.",
+      "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣿⣿⣾⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀",
+      "⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣇⠀⠀⠀⠀⠀⠀",
+      "⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀    MORE INFO TO COME SOON.",
+      "⠀⠀⠀⠀⠀⠀⠀⠛⠻⠿⣿⣿⣿⡿⠿⠿⠿⠿⠿⢿⣿⣿⠏⠀"
+    ];
+
+    const leakViewElem = document.getElementById('leakView');
+    const enterLeaksBtn = document.getElementById('enterLeaks');
+    const downloadBtn = document.getElementById('downloadLeak');
+
+    enterLeaksBtn.addEventListener('click', () => {
+      enterLeaksBtn.style.display = 'none';
+      downloadBtn.style.display = 'inline-block';
+      leakViewElem.style.display = 'block';
+      leakViewElem.value = leakLines.join('\n');
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      const text = leakViewElem.value;
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'INFO.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
